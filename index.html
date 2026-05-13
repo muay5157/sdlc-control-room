@@ -29,8 +29,8 @@
       .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
       .bg-mesh { background-color: #0a0f1e; background-image: radial-gradient(ellipse at 20% 20%, rgba(99,60,180,0.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 10%, rgba(37,99,235,0.14) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(16,185,129,0.10) 0%, transparent 50%); }
       .timeline-line { position:relative; } .timeline-line::before { content:''; position:absolute; left:50%; top:0; bottom:0; width:2px; background: linear-gradient(to bottom, rgba(167,139,250,0.4), rgba(52,211,153,0.4)); transform:translateX(-50%); pointer-events:none; }
-      ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); border-radius:4px; } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.22); }
-      * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) rgba(255,255,255,0.03); }
+      ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:rgba(255,255,255,0.05); border-radius:4px; } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.22); border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.35); }
+      * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) rgba(255,255,255,0.05); }
     </style>
   </head>
   <body class="bg-mesh">
@@ -108,6 +108,11 @@ const statusStyle = {
 
 const statusWeights = { done: 1, running: 0.5, blocked: 0.5, failed: 0.5, queued: 0 };
 
+function extractShortTitle(title) {
+  const dotIdx = title.indexOf(".");
+  return dotIdx > 0 ? title.slice(0, dotIdx + 1) : title;
+}
+
 function applyDemoEvents(eventCount) {
   const stageMap = new Map(baseStages.map((stage) => [stage.id, { ...stage }]));
   demoEvents.slice(0, eventCount).forEach((event) => {
@@ -180,7 +185,7 @@ function MetricCard({ icon, label, value, note, accent }) {
           <p className="text-lg font-bold text-white truncate">{value}</p>
         </div>
       </div>
-      <p className="mt-3 text-xs leading-5 text-slate-400 line-clamp-2">{note}</p>
+      <p className="mt-3 text-xs leading-5 text-slate-400 line-clamp-2" title={note}>{note}</p>
     </div>
   );
 }
@@ -202,7 +207,7 @@ function ActivityLog({ events }) {
       </div>
       <div className="max-h-[380px] space-y-2 overflow-auto pr-1">
         {reversed.length === 0 ? (
-          <div className="rounded-xl bg-white/5 p-4 text-xs text-slate-400 ring-1 ring-white/10 text-center">Click <span className="text-violet-300 font-medium">Run Demo</span> to start the simulated SDLC flow.</div>
+          <div className="rounded-xl bg-white/5 p-4 text-xs text-slate-400 ring-1 ring-white/10 text-center">Click <span className="text-violet-300 font-bold underline decoration-dotted">Run Demo</span> to start the simulated SDLC flow.</div>
         ) : (
           reversed.map((event, index) => (
             <div key={`${event.time}-${event.source}-${index}`} className="rounded-xl bg-white/5 p-3 ring-1 ring-white/8">
@@ -238,7 +243,7 @@ function ArtifactList({ stages }) {
                 <Icon name="check" className="h-3 w-3 text-emerald-400 flex-shrink-0" />
                 <span className="font-medium text-emerald-200 truncate">{stage.artifact}</span>
               </div>
-              <span className="text-emerald-500 flex-shrink-0">{stage.title.includes(".") ? `${stage.title.split(".")[0]}.` : stage.title}</span>
+              <span className="text-emerald-500 flex-shrink-0">{extractShortTitle(stage.title)}</span>
             </div>
           ))
         )}

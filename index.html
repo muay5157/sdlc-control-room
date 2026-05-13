@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenClaw SDLC Pipeline Demo</title>
+    <meta name="description" content="A simulated OpenClaw SDLC pipeline dashboard demo." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+const { useEffect, useMemo, useState } = React;
+
+const iconPaths = {
+  bot: "M12 8V4H8m4 4V4h4M5 8h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Zm4 5h.01M15 13h.01M8 19v2m8-2v2",
+  check: "M20 6 9 17l-5-5",
+  clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+  branch: "M6 3v12m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12-12a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 0v3a6 6 0 0 1-6 6H6",
+  pr: "M6 3v12m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12-12a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 0v18m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z",
+  loader: "M21 12a9 9 0 0 1-9 9M3 12a9 9 0 0 1 9-9",
+  pause: "M10 15V9m4 6V9M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
+  play: "M8 5v14l11-7-11-7Z",
+  terminal: "M4 17h16M7 7l4 4-4 4m6 0h4",
+  alert: "M12 9v4m0 4h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
+};
+
+function Icon({ name, className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d={iconPaths[name] ?? iconPaths.clock} />
+    </svg>
+  );
+}
+
+const demoPrompt = `/run demo\nissue: Build a simple planning workflow card for OpenClaw dashboard\nmode: supervised\nagents: copilot, codex, gemini\ngates: plan, merge, production\nacceptance: show status cards, activity log, artifacts, and final report`;
+
+const baseStages = [
+  { id: "intake", title: "1. Intake", owner: "Telegram + OpenClaw", status: "queued", summary: "Waiting for a one-shot work request from Telegram.", artifact: "Requirement Brief" },
+  { id: "planning", title: "2. Planning", owner: "Copilot CLI + Gemini CLI", status: "queued", summary: "Plan, task packet, risk notes, and acceptance criteria will be generated.", artifact: "Task Packet" },
+  { id: "plan-gate", title: "3. Plan Gate", owner: "Human Controller", status: "queued", summary: "Wait for approval before writing code.", artifact: "Approval Record" },
+  { id: "branch", title: "4. Branch Setup", owner: "Git CLI", status: "queued", summary: "Create feature branch and link it to the GitHub Issue.", artifact: "feature/issue-128-demo-plan-card" },
+  { id: "implementation", title: "5. Implementation", owner: "Codex CLI", status: "queued", summary: "Implement the small planning card UI and demo data.", artifact: "Code Commit" },
+  { id: "verification", title: "6. Verification", owner: "GitHub Actions", status: "queued", summary: "Run lint, build, and smoke tests.", artifact: "CI Report" },
+  { id: "fix-loop", title: "7. Auto Fix Loop", owner: "Copilot Review + Codex CLI", status: "queued", summary: "Apply review comments and rerun verification if needed.", artifact: "Fix Commit" },
+  { id: "pr", title: "8. Pull Request", owner: "GitHub", status: "queued", summary: "Open PR with summary, test evidence, and generated artifacts.", artifact: "PR Summary" },
+  { id: "merge-gate", title: "9. Merge Gate", owner: "Human Controller", status: "queued", summary: "Wait for merge approval after CI is green.", artifact: "Merge Approval" },
+  { id: "staging", title: "10. Staging", owner: "GitHub Environments", status: "queued", summary: "Deploy demo build to staging and collect evidence.", artifact: "Staging Evidence" },
+  { id: "production", title: "11. Production", owner: "GitHub Actions", status: "queued", summary: "Deploy the approved demo dashboard.", artifact: "Deployment Record" },
+  { id: "monitor", title: "12. Monitor", owner: "OpenClaw", status: "queued", summary: "Report final status back to Telegram and GitHub Issue.", artifact: "Telegram Status Report" },
+];
+
+const demoEvents = [
+  { time: "10:00", source: "Telegram", text: "One-shot demo prompt submitted by Human Controller.", updates: [{ id: "intake", status: "running", summary: "Telegram command received. OpenClaw is normalizing the request." }] },
+  { time: "10:01", source: "OpenClaw", text: "Created run demo-001 and linked GitHub Issue #128.", updates: [{ id: "intake", status: "done", summary: "Request captured and linked to GitHub Issue #128." }, { id: "planning", status: "running", summary: "Planner is generating task packet, risks, and acceptance criteria." }] },
+  { time: "10:02", source: "Gemini CLI", text: "Summarized context and proposed a small dashboard card feature.", updates: [{ id: "planning", status: "running", summary: "Repository context summarized. Copilot CLI is shaping the implementation plan." }] },
+  { time: "10:03", source: "Copilot CLI", text: "Generated Task Packet, ADR, and Test Plan artifacts.", updates: [{ id: "planning", status: "done", summary: "Task packet, ADR, and test plan generated." }, { id: "plan-gate", status: "blocked", summary: "Waiting for human approval before coding starts." }] },
+  { time: "10:04", source: "Human", text: "Approved plan gate from Telegram.", updates: [{ id: "plan-gate", status: "done", summary: "Plan approved from Telegram command channel." }, { id: "branch", status: "running", summary: "Creating feature branch and linking it to the issue." }] },
+  { time: "10:05", source: "Git CLI", text: "Created feature/issue-128-demo-plan-card and pushed initial commit.", updates: [{ id: "branch", status: "done", summary: "Feature branch created and pushed." }, { id: "implementation", status: "running", summary: "Codex CLI is implementing the demo planning card." }] },
+  { time: "10:07", source: "Codex CLI", text: "Implemented the UI card, demo data, and progress calculation.", updates: [{ id: "implementation", status: "done", summary: "Demo UI and status logic implemented." }, { id: "verification", status: "running", summary: "GitHub Actions is running lint, build, and smoke tests." }] },
+  { time: "10:08", source: "GitHub Actions", text: "Build failed once because one status was missing from the style map.", updates: [{ id: "verification", status: "failed", summary: "First build failed. Missing status style detected." }, { id: "fix-loop", status: "running", summary: "Auto-fix loop started. Codex will patch the status map and rerun tests." }] },
+  { time: "10:09", source: "Codex CLI", text: "Auto-fixed status map and added data validation tests.", updates: [{ id: "fix-loop", status: "done", summary: "Fix applied and extra self-tests added." }, { id: "verification", status: "running", summary: "CI is rerunning after the auto-fix." }] },
+  { time: "10:10", source: "GitHub Actions", text: "CI passed: build, lint, and smoke checks are green.", updates: [{ id: "verification", status: "done", summary: "CI passed after one controlled auto-fix loop." }, { id: "pr", status: "running", summary: "Opening pull request with summary and test evidence." }] },
+  { time: "10:11", source: "GitHub", text: "Opened Pull Request #42 with generated artifacts attached.", updates: [{ id: "pr", status: "done", summary: "Pull Request #42 opened with test evidence." }, { id: "merge-gate", status: "blocked", summary: "Waiting for human approval to merge." }] },
+  { time: "10:12", source: "Human", text: "Approved merge gate from Telegram.", updates: [{ id: "merge-gate", status: "done", summary: "Merge approved by Human Controller." }, { id: "staging", status: "running", summary: "Deploying the demo to staging." }] },
+  { time: "10:13", source: "GitHub Environments", text: "Staging deployment completed and smoke evidence collected.", updates: [{ id: "staging", status: "done", summary: "Staging deployment passed smoke checks." }, { id: "production", status: "running", summary: "Production demo deployment started." }] },
+  { time: "10:14", source: "GitHub Actions", text: "Production deployment completed successfully.", updates: [{ id: "production", status: "done", summary: "Production deployment completed." }, { id: "monitor", status: "running", summary: "OpenClaw is preparing the final report." }] },
+  { time: "10:15", source: "OpenClaw", text: "Final report sent to Telegram and GitHub Issue #128 moved to Done.", updates: [{ id: "monitor", status: "done", summary: "Final report sent. GitHub Issue #128 moved to Done." }] },
+];
+
+const statusStyle = {
+  done: { label: "Done", badge: "bg-emerald-50 text-emerald-700 ring-emerald-200", border: "border-emerald-300", dot: "bg-emerald-500", icon: "check" },
+  running: { label: "Running", badge: "bg-sky-50 text-sky-700 ring-sky-200", border: "border-sky-300", dot: "bg-sky-500", icon: "loader" },
+  queued: { label: "Queued", badge: "bg-slate-50 text-slate-600 ring-slate-200", border: "border-slate-200", dot: "bg-slate-400", icon: "clock" },
+  blocked: { label: "Needs approval", badge: "bg-amber-50 text-amber-700 ring-amber-200", border: "border-amber-300", dot: "bg-amber-500", icon: "pause" },
+  failed: { label: "Failed", badge: "bg-red-50 text-red-700 ring-red-200", border: "border-red-300", dot: "bg-red-500", icon: "alert" },
+};
+
+const statusWeights = { done: 1, running: 0.5, blocked: 0.5, failed: 0.5, queued: 0 };
+
+function applyDemoEvents(eventCount) {
+  const stageMap = new Map(baseStages.map((stage) => [stage.id, { ...stage }]));
+  demoEvents.slice(0, eventCount).forEach((event) => {
+    event.updates.forEach((update) => {
+      const current = stageMap.get(update.id);
+      if (current) stageMap.set(update.id, { ...current, ...update });
+    });
+  });
+  return baseStages.map((stage) => stageMap.get(stage.id));
+}
+
+function calculateProgress(items) {
+  if (!items.length) return 0;
+  const total = items.reduce((sum, item) => sum + (statusWeights[item.status] ?? 0), 0);
+  return Math.round((total / items.length) * 100);
+}
+
+function StatusBadge({ status }) {
+  const meta = statusStyle[status] ?? statusStyle.queued;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${meta.badge}`}>
+      <Icon name={meta.icon} className={`h-3.5 w-3.5 ${status === "running" ? "animate-spin" : ""}`} />
+      {meta.label}
+    </span>
+  );
+}
+
+function StageCard({ stage, compact }) {
+  const meta = statusStyle[stage.status] ?? statusStyle.queued;
+  return (
+    <div className={`relative rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${meta.border}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
+            <h3 className="text-sm font-semibold text-slate-900">{stage.title}</h3>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">{stage.owner}</p>
+        </div>
+        <StatusBadge status={stage.status} />
+      </div>
+      {!compact && (
+        <>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{stage.summary}</p>
+          <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-100">
+            Artifact: <span className="font-medium text-slate-900">{stage.artifact}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetricCard({ icon, label, value, note }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-slate-100 p-2">
+          <Icon name={icon} className="h-5 w-5 text-slate-700" />
+        </div>
+        <div>
+          <p className="text-xs text-slate-500">{label}</p>
+          <p className="text-lg font-semibold text-slate-900">{value}</p>
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-slate-500">{note}</p>
+    </div>
+  );
+}
+
+function ActivityLog({ events }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-950">Live Activity</h2>
+      <div className="mt-4 max-h-[420px] space-y-3 overflow-auto pr-1">
+        {events.length === 0 ? (
+          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 ring-1 ring-slate-100">Click Run Demo to start the simulated SDLC flow.</div>
+        ) : (
+          events.map((event, index) => (
+            <div key={`${event.time}-${event.source}-${index}`} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold text-slate-900">{event.source}</span>
+                <span className="text-xs text-slate-400">{event.time}</span>
+              </div>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{event.text}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ArtifactList({ stages }) {
+  const generated = stages.filter((stage) => stage.status === "done");
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-slate-950">Generated Artifacts</h2>
+      <div className="mt-4 space-y-2">
+        {generated.length === 0 ? (
+          <div className="rounded-2xl bg-slate-50 px-3 py-3 text-xs text-slate-500 ring-1 ring-slate-100">No artifact generated yet.</div>
+        ) : (
+          generated.map((stage) => (
+            <div key={stage.id} className="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 px-3 py-2 text-xs ring-1 ring-emerald-100">
+              <span className="font-medium text-emerald-900">{stage.artifact}</span>
+              <span className="text-emerald-700">{stage.title}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState("expanded");
+  const [eventCount, setEventCount] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    if (!isRunning) return undefined;
+    if (eventCount >= demoEvents.length) {
+      setIsRunning(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setEventCount((count) => Math.min(count + 1, demoEvents.length)), 900);
+    return () => window.clearTimeout(timer);
+  }, [eventCount, isRunning]);
+
+  const compact = view === "compact";
+  const visibleStages = useMemo(() => applyDemoEvents(eventCount), [eventCount]);
+  const visibleEvents = useMemo(() => demoEvents.slice(0, eventCount), [eventCount]);
+  const progress = useMemo(() => calculateProgress(visibleStages), [visibleStages]);
+  const currentEvent = visibleEvents[visibleEvents.length - 1];
+  const doneCount = visibleStages.filter((stage) => stage.status === "done").length;
+  const pendingGates = visibleStages.filter((stage) => stage.status === "blocked").length;
+  const hasFailedStage = visibleStages.some((stage) => stage.status === "failed");
+
+  const runDemo = () => {
+    setEventCount(0);
+    setIsRunning(true);
+  };
+
+  const stepOnce = () => {
+    setIsRunning(false);
+    setEventCount((count) => Math.min(count + 1, demoEvents.length));
+  };
+
+  const resetDemo = () => {
+    setIsRunning(false);
+    setEventCount(0);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-6 text-slate-900">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <header className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                <Icon name="bot" className="h-4 w-4" />
+                OpenClaw SDLC Control Room Demo
+              </div>
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">One-Shot Pipeline Demo</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                A simulated end-to-end run: Telegram prompt → OpenClaw planning → branch → implementation → CI failure → auto-fix → PR → staging → production → final report.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button onClick={runDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                <Icon name="play" className="h-4 w-4" />
+                Run Demo
+              </button>
+              <button onClick={stepOnce} disabled={eventCount >= demoEvents.length} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                <Icon name="terminal" className="h-4 w-4" />
+                Step Once
+              </button>
+              <button onClick={resetDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">Reset</button>
+            </div>
+          </div>
+        </header>
+
+        <section className="grid gap-4 md:grid-cols-4">
+          <MetricCard icon="branch" label="Demo run" value="demo-001" note={`${doneCount}/${visibleStages.length} stages completed.`} />
+          <MetricCard icon="terminal" label="Current actor" value={currentEvent?.source ?? "Idle"} note={currentEvent?.text ?? "Waiting for Run Demo."} />
+          <MetricCard icon="pr" label="Pull request" value={eventCount >= 11 ? "PR #42" : "Not opened"} note="PR appears after verification is green." />
+          <MetricCard icon="alert" label="Attention" value={hasFailedStage ? "Auto-fix" : `${pendingGates} gate(s)`} note={hasFailedStage ? "A controlled fix loop is in progress." : "Human approval gates are simulated in this demo."} />
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.75fr_1fr]">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-950">Workflow Timeline</h2>
+                <p className="text-sm text-slate-500">Cards update as each simulated OpenClaw/GitHub/CLI event arrives.</p>
+              </div>
+              <div className="flex rounded-2xl bg-slate-100 p-1">
+                {[{ id: "expanded", label: "Expanded" }, { id: "compact", label: "Compact" }].map((item) => (
+                  <button key={item.id} onClick={() => setView(item.id)} className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${view === item.id ? "bg-white text-slate-950 shadow-sm" : "text-slate-500"}`}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="font-medium text-slate-700">Overall progress</span>
+                <span className="font-semibold text-slate-950">{progress}%</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                <div style={{ width: `${progress}%` }} className="h-full rounded-full bg-slate-900 transition-all duration-700 ease-out" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {visibleStages.map((stage) => <StageCard key={stage.id} stage={stage} compact={compact} />)}
+            </div>
+          </div>
+
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-950">Demo Prompt</h2>
+              <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-slate-950 p-4 font-mono text-xs leading-6 text-slate-100">{demoPrompt}</pre>
+            </div>
+            <ActivityLog events={visibleEvents} />
+            <ArtifactList stages={visibleStages} />
+            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Icon name="pause" className="mt-0.5 h-5 w-5 text-amber-700" />
+                <div>
+                  <h2 className="text-sm font-semibold text-amber-900">Demo rule</h2>
+                  <p className="mt-1 text-sm leading-6 text-amber-800">
+                    Human gates are simulated here. In a real OpenClaw setup, these buttons should call the backend or Telegram approval command.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+    </script>
+  </body>
+</html>

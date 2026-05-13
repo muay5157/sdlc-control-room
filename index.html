@@ -9,8 +9,30 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+      * { font-family: 'Inter', sans-serif; }
+      .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.10); }
+      .glass-card { background: rgba(255,255,255,0.07); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); }
+      .glow-emerald { box-shadow: 0 0 20px rgba(52,211,153,0.25); }
+      .glow-sky { box-shadow: 0 0 20px rgba(56,189,248,0.25); }
+      .glow-amber { box-shadow: 0 0 20px rgba(251,191,36,0.25); }
+      .glow-red { box-shadow: 0 0 20px rgba(248,113,113,0.25); }
+      .gradient-text { background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      .gradient-border { background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(96,165,250,0.3), rgba(52,211,153,0.3)); }
+      .progress-glow { box-shadow: 0 0 12px rgba(167,139,250,0.6), 0 0 24px rgba(96,165,250,0.3); }
+      .pulse-dot { animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+      @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+      .spin-slow { animation: spin 1.4s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+      .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+      .bg-mesh { background-color: #0a0f1e; background-image: radial-gradient(ellipse at 20% 20%, rgba(99,60,180,0.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 10%, rgba(37,99,235,0.14) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(16,185,129,0.10) 0%, transparent 50%); }
+      .timeline-line { position:relative; } .timeline-line::before { content:''; position:absolute; left:50%; top:0; bottom:0; width:2px; background: linear-gradient(to bottom, rgba(167,139,250,0.4), rgba(52,211,153,0.4)); transform:translateX(-50%); pointer-events:none; }
+      ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); border-radius:4px; } ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:4px; } ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.22); }
+    </style>
   </head>
-  <body>
+  <body class="bg-mesh">
     <div id="root"></div>
     <script type="text/babel">
 const { useEffect, useMemo, useState } = React;
@@ -26,11 +48,15 @@ const iconPaths = {
   play: "M8 5v14l11-7-11-7Z",
   terminal: "M4 17h16M7 7l4 4-4 4m6 0h4",
   alert: "M12 9v4m0 4h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
+  sparkles: "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z",
+  rocket: "M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z",
+  cpu: "M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z",
+  shield: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z",
 };
 
 function Icon({ name, className = "h-4 w-4" }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <path d={iconPaths[name] ?? iconPaths.clock} />
     </svg>
   );
@@ -72,11 +98,11 @@ const demoEvents = [
 ];
 
 const statusStyle = {
-  done: { label: "Done", badge: "bg-emerald-50 text-emerald-700 ring-emerald-200", border: "border-emerald-300", dot: "bg-emerald-500", icon: "check" },
-  running: { label: "Running", badge: "bg-sky-50 text-sky-700 ring-sky-200", border: "border-sky-300", dot: "bg-sky-500", icon: "loader" },
-  queued: { label: "Queued", badge: "bg-slate-50 text-slate-600 ring-slate-200", border: "border-slate-200", dot: "bg-slate-400", icon: "clock" },
-  blocked: { label: "Needs approval", badge: "bg-amber-50 text-amber-700 ring-amber-200", border: "border-amber-300", dot: "bg-amber-500", icon: "pause" },
-  failed: { label: "Failed", badge: "bg-red-50 text-red-700 ring-red-200", border: "border-red-300", dot: "bg-red-500", icon: "alert" },
+  done:    { label: "Done",          badge: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30", border: "border-emerald-500/40",  dot: "bg-emerald-400",  glow: "glow-emerald", icon: "check"  },
+  running: { label: "Running",       badge: "bg-sky-500/15 text-sky-300 ring-sky-500/30",             border: "border-sky-500/40",     dot: "bg-sky-400",     glow: "glow-sky",    icon: "loader" },
+  queued:  { label: "Queued",        badge: "bg-white/5 text-slate-400 ring-white/10",                border: "border-white/10",       dot: "bg-slate-500",   glow: "",            icon: "clock"  },
+  blocked: { label: "Needs approval",badge: "bg-amber-500/15 text-amber-300 ring-amber-500/30",      border: "border-amber-500/40",   dot: "bg-amber-400",   glow: "glow-amber",  icon: "pause"  },
+  failed:  { label: "Failed",        badge: "bg-red-500/15 text-red-300 ring-red-500/30",             border: "border-red-500/40",     dot: "bg-red-400",     glow: "glow-red",    icon: "alert"  },
 };
 
 const statusWeights = { done: 1, running: 0.5, blocked: 0.5, failed: 0.5, queued: 0 };
@@ -101,8 +127,8 @@ function calculateProgress(items) {
 function StatusBadge({ status }) {
   const meta = statusStyle[status] ?? statusStyle.queued;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${meta.badge}`}>
-      <Icon name={meta.icon} className={`h-3.5 w-3.5 ${status === "running" ? "animate-spin" : ""}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${meta.badge}`}>
+      <Icon name={meta.icon} className={`h-3 w-3 ${status === "running" ? "spin-slow" : ""}`} />
       {meta.label}
     </span>
   );
@@ -111,22 +137,22 @@ function StatusBadge({ status }) {
 function StageCard({ stage, compact }) {
   const meta = statusStyle[stage.status] ?? statusStyle.queued;
   return (
-    <div className={`relative rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${meta.border}`}>
+    <div className={`relative rounded-2xl border glass-card p-4 card-hover ${meta.border} ${stage.status !== "queued" ? meta.glow : ""}`}>
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
-            <h3 className="text-sm font-semibold text-slate-900">{stage.title}</h3>
+            <span className={`h-2 w-2 flex-shrink-0 rounded-full ${meta.dot} ${stage.status === "running" ? "pulse-dot" : ""}`} />
+            <h3 className="text-sm font-semibold text-white truncate">{stage.title}</h3>
           </div>
-          <p className="mt-1 text-xs text-slate-500">{stage.owner}</p>
+          <p className="mt-1 text-xs text-slate-400">{stage.owner}</p>
         </div>
         <StatusBadge status={stage.status} />
       </div>
       {!compact && (
         <>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{stage.summary}</p>
-          <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-100">
-            Artifact: <span className="font-medium text-slate-900">{stage.artifact}</span>
+          <p className="mt-3 text-xs leading-5 text-slate-300">{stage.summary}</p>
+          <div className="mt-3 rounded-xl bg-white/5 px-3 py-2 text-xs text-slate-400 ring-1 ring-white/10">
+            <span className="text-slate-500">Artifact: </span><span className="font-medium text-slate-200">{stage.artifact}</span>
           </div>
         </>
       )}
@@ -134,38 +160,55 @@ function StageCard({ stage, compact }) {
   );
 }
 
-function MetricCard({ icon, label, value, note }) {
+function MetricCard({ icon, label, value, note, accent }) {
+  const accents = {
+    violet: "from-violet-500/20 to-violet-600/5 border-violet-500/30 text-violet-400",
+    sky:    "from-sky-500/20 to-sky-600/5 border-sky-500/30 text-sky-400",
+    emerald:"from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400",
+    amber:  "from-amber-500/20 to-amber-600/5 border-amber-500/30 text-amber-400",
+  };
+  const a = accents[accent] ?? accents.violet;
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className={`rounded-2xl border bg-gradient-to-br p-5 card-hover ${a}`}>
       <div className="flex items-center gap-3">
-        <div className="rounded-xl bg-slate-100 p-2">
-          <Icon name={icon} className="h-5 w-5 text-slate-700" />
+        <div className={`rounded-xl bg-white/10 p-2.5`}>
+          <Icon name={icon} className={`h-5 w-5 ${a.split(" ").find(c => c.startsWith("text-"))}`} />
         </div>
-        <div>
-          <p className="text-xs text-slate-500">{label}</p>
-          <p className="text-lg font-semibold text-slate-900">{value}</p>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-400">{label}</p>
+          <p className="text-lg font-bold text-white truncate">{value}</p>
         </div>
       </div>
-      <p className="mt-3 text-xs text-slate-500">{note}</p>
+      <p className="mt-3 text-xs leading-5 text-slate-400 line-clamp-2">{note}</p>
     </div>
   );
 }
 
 function ActivityLog({ events }) {
+  const sourceColors = {
+    Telegram: "text-sky-400", OpenClaw: "text-violet-400", "Gemini CLI": "text-emerald-400",
+    "Copilot CLI": "text-blue-400", "Git CLI": "text-orange-400", "Codex CLI": "text-pink-400",
+    "GitHub Actions": "text-yellow-400", GitHub: "text-slate-300", Human: "text-rose-400",
+    "GitHub Environments": "text-cyan-400",
+  };
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-950">Live Activity</h2>
-      <div className="mt-4 max-h-[420px] space-y-3 overflow-auto pr-1">
+    <div className="rounded-2xl border border-white/10 glass p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="terminal" className="h-4 w-4 text-violet-400" />
+        <h2 className="text-sm font-semibold text-white">Live Activity</h2>
+        {events.length > 0 && <span className="ml-auto text-xs text-slate-500">{events.length} events</span>}
+      </div>
+      <div className="max-h-[380px] space-y-2 overflow-auto pr-1">
         {events.length === 0 ? (
-          <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 ring-1 ring-slate-100">Click Run Demo to start the simulated SDLC flow.</div>
+          <div className="rounded-xl bg-white/5 p-4 text-xs text-slate-400 ring-1 ring-white/10 text-center">Click <span className="text-violet-300 font-medium">Run Demo</span> to start the simulated SDLC flow.</div>
         ) : (
-          events.map((event, index) => (
-            <div key={`${event.time}-${event.source}-${index}`} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+          [...events].reverse().map((event, index) => (
+            <div key={`${event.time}-${event.source}-${index}`} className="rounded-xl bg-white/5 p-3 ring-1 ring-white/8">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-slate-900">{event.source}</span>
-                <span className="text-xs text-slate-400">{event.time}</span>
+                <span className={`text-xs font-semibold ${sourceColors[event.source] ?? "text-slate-300"}`}>{event.source}</span>
+                <span className="text-xs text-slate-500 font-mono">{event.time}</span>
               </div>
-              <p className="mt-1 text-xs leading-5 text-slate-600">{event.text}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-400">{event.text}</p>
             </div>
           ))
         )}
@@ -177,16 +220,23 @@ function ActivityLog({ events }) {
 function ArtifactList({ stages }) {
   const generated = stages.filter((stage) => stage.status === "done");
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-950">Generated Artifacts</h2>
-      <div className="mt-4 space-y-2">
+    <div className="rounded-2xl border border-white/10 glass p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="sparkles" className="h-4 w-4 text-emerald-400" />
+        <h2 className="text-sm font-semibold text-white">Generated Artifacts</h2>
+        {generated.length > 0 && <span className="ml-auto rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-500/30">{generated.length}</span>}
+      </div>
+      <div className="space-y-2">
         {generated.length === 0 ? (
-          <div className="rounded-2xl bg-slate-50 px-3 py-3 text-xs text-slate-500 ring-1 ring-slate-100">No artifact generated yet.</div>
+          <div className="rounded-xl bg-white/5 px-3 py-3 text-xs text-slate-400 ring-1 ring-white/10 text-center">No artifacts generated yet.</div>
         ) : (
           generated.map((stage) => (
-            <div key={stage.id} className="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 px-3 py-2 text-xs ring-1 ring-emerald-100">
-              <span className="font-medium text-emerald-900">{stage.artifact}</span>
-              <span className="text-emerald-700">{stage.title}</span>
+            <div key={stage.id} className="flex items-center justify-between gap-3 rounded-xl bg-emerald-500/10 px-3 py-2.5 text-xs ring-1 ring-emerald-500/20">
+              <div className="flex items-center gap-2 min-w-0">
+                <Icon name="check" className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                <span className="font-medium text-emerald-200 truncate">{stage.artifact}</span>
+              </div>
+              <span className="text-emerald-500 flex-shrink-0">{stage.title.split(".")[0]}.</span>
             </div>
           ))
         )}
@@ -219,101 +269,113 @@ function App() {
   const pendingGates = visibleStages.filter((stage) => stage.status === "blocked").length;
   const hasFailedStage = visibleStages.some((stage) => stage.status === "failed");
 
-  const runDemo = () => {
-    setEventCount(0);
-    setIsRunning(true);
-  };
-
-  const stepOnce = () => {
-    setIsRunning(false);
-    setEventCount((count) => Math.min(count + 1, demoEvents.length));
-  };
-
-  const resetDemo = () => {
-    setIsRunning(false);
-    setEventCount(0);
-  };
+  const runDemo = () => { setEventCount(0); setIsRunning(true); };
+  const stepOnce = () => { setIsRunning(false); setEventCount((count) => Math.min(count + 1, demoEvents.length)); };
+  const resetDemo = () => { setIsRunning(false); setEventCount(0); };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="min-h-screen bg-mesh p-4 md:p-6 text-slate-100">
+      <div className="mx-auto max-w-7xl space-y-5">
+
+        {/* Header */}
+        <header className="rounded-3xl border border-white/10 glass p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                <Icon name="bot" className="h-4 w-4" />
-                OpenClaw SDLC Control Room Demo
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-300 ring-1 ring-white/10">
+                <Icon name="bot" className="h-3.5 w-3.5 text-violet-400" />
+                <span>OpenClaw SDLC Control Room</span>
+                <span className="ml-1 rounded-full bg-violet-500/30 px-1.5 py-0.5 text-violet-300 text-[10px] font-semibold">Demo</span>
               </div>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">One-Shot Pipeline Demo</h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                A simulated end-to-end run: Telegram prompt → OpenClaw planning → branch → implementation → CI failure → auto-fix → PR → staging → production → final report.
+              <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+                <span className="gradient-text">One-Shot Pipeline</span>
+                <span className="text-white"> Demo</span>
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Telegram prompt → OpenClaw planning → branch → implementation → CI failure → auto-fix → PR → staging → production → final report.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button onClick={runDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+            <div className="flex flex-wrap gap-2.5 lg:flex-col xl:flex-row">
+              <button onClick={runDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-violet-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:from-violet-500 hover:to-blue-500 hover:shadow-violet-500/40">
                 <Icon name="play" className="h-4 w-4" />
                 Run Demo
               </button>
-              <button onClick={stepOnce} disabled={eventCount >= demoEvents.length} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+              <button onClick={stepOnce} disabled={eventCount >= demoEvents.length} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-40">
                 <Icon name="terminal" className="h-4 w-4" />
                 Step Once
               </button>
-              <button onClick={resetDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">Reset</button>
+              <button onClick={resetDemo} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/8 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur transition hover:bg-white/12">
+                Reset
+              </button>
             </div>
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-4">
-          <MetricCard icon="branch" label="Demo run" value="demo-001" note={`${doneCount}/${visibleStages.length} stages completed.`} />
-          <MetricCard icon="terminal" label="Current actor" value={currentEvent?.source ?? "Idle"} note={currentEvent?.text ?? "Waiting for Run Demo."} />
-          <MetricCard icon="pr" label="Pull request" value={eventCount >= 11 ? "PR #42" : "Not opened"} note="PR appears after verification is green." />
-          <MetricCard icon="alert" label="Attention" value={hasFailedStage ? "Auto-fix" : `${pendingGates} gate(s)`} note={hasFailedStage ? "A controlled fix loop is in progress." : "Human approval gates are simulated in this demo."} />
+        {/* Metric Cards */}
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard accent="violet" icon="rocket"    label="Demo run"       value="demo-001"                            note={`${doneCount}/${visibleStages.length} stages completed.`} />
+          <MetricCard accent="sky"    icon="cpu"       label="Current actor"  value={currentEvent?.source ?? "Idle"}      note={currentEvent?.text ?? "Waiting for Run Demo."} />
+          <MetricCard accent="emerald"icon="pr"        label="Pull request"   value={eventCount >= 11 ? "PR #42" : "—"}   note="PR appears after verification is green." />
+          <MetricCard accent="amber"  icon="shield"    label="Attention"      value={hasFailedStage ? "Auto-fix" : `${pendingGates} gate(s)`} note={hasFailedStage ? "A controlled fix loop is in progress." : "Human approval gates simulated in this demo."} />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.75fr_1fr]">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        {/* Main Grid */}
+        <section className="grid gap-5 lg:grid-cols-[1.8fr_1fr]">
+          {/* Left: Workflow Timeline */}
+          <div className="rounded-3xl border border-white/10 glass p-5">
             <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-slate-950">Workflow Timeline</h2>
-                <p className="text-sm text-slate-500">Cards update as each simulated OpenClaw/GitHub/CLI event arrives.</p>
+                <h2 className="text-base font-bold text-white">Workflow Timeline</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Cards update as each simulated event arrives.</p>
               </div>
-              <div className="flex rounded-2xl bg-slate-100 p-1">
+              <div className="flex rounded-2xl bg-white/8 p-1 ring-1 ring-white/10 w-fit">
                 {[{ id: "expanded", label: "Expanded" }, { id: "compact", label: "Compact" }].map((item) => (
-                  <button key={item.id} onClick={() => setView(item.id)} className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${view === item.id ? "bg-white text-slate-950 shadow-sm" : "text-slate-500"}`}>
+                  <button key={item.id} onClick={() => setView(item.id)} className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${view === item.id ? "bg-violet-600 text-white shadow" : "text-slate-400 hover:text-slate-200"}`}>
                     {item.label}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Progress Bar */}
             <div className="mb-6">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700">Overall progress</span>
-                <span className="font-semibold text-slate-950">{progress}%</span>
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-300">Overall progress</span>
+                <span className="font-bold text-white">{progress}%</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-                <div style={{ width: `${progress}%` }} className="h-full rounded-full bg-slate-900 transition-all duration-700 ease-out" />
+              <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 via-blue-500 to-emerald-400 progress-glow transition-all duration-700 ease-out"
+                />
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className={`grid gap-3 ${compact ? "grid-cols-2 md:grid-cols-3 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"}`}>
               {visibleStages.map((stage) => <StageCard key={stage.id} stage={stage} compact={compact} />)}
             </div>
           </div>
 
-          <aside className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-950">Demo Prompt</h2>
-              <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-slate-950 p-4 font-mono text-xs leading-6 text-slate-100">{demoPrompt}</pre>
+          {/* Right: Sidebar */}
+          <aside className="space-y-5">
+            {/* Demo Prompt */}
+            <div className="rounded-2xl border border-white/10 glass p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Icon name="terminal" className="h-4 w-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-white">Demo Prompt</h2>
+              </div>
+              <pre className="whitespace-pre-wrap rounded-xl bg-black/40 p-4 font-mono text-xs leading-6 text-emerald-300 ring-1 ring-white/10">{demoPrompt}</pre>
             </div>
+
             <ActivityLog events={visibleEvents} />
             <ArtifactList stages={visibleStages} />
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+
+            {/* Demo Rule */}
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
               <div className="flex items-start gap-3">
-                <Icon name="pause" className="mt-0.5 h-5 w-5 text-amber-700" />
+                <Icon name="pause" className="mt-0.5 h-4 w-4 text-amber-400 flex-shrink-0" />
                 <div>
-                  <h2 className="text-sm font-semibold text-amber-900">Demo rule</h2>
-                  <p className="mt-1 text-sm leading-6 text-amber-800">
+                  <h2 className="text-xs font-semibold text-amber-300">Demo rule</h2>
+                  <p className="mt-1 text-xs leading-5 text-amber-400/80">
                     Human gates are simulated here. In a real OpenClaw setup, these buttons should call the backend or Telegram approval command.
                   </p>
                 </div>

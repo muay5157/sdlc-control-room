@@ -26,6 +26,7 @@ const iconPaths = {
   play: "M8 5v14l11-7-11-7Z",
   terminal: "M4 17h16M7 7l4 4-4 4m6 0h4",
   alert: "M12 9v4m0 4h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
+  megaphone: "M3 11v2a2 2 0 0 0 2 2h2l4 4v-4l8-3V8l-8-3v4H5a2 2 0 0 0-2 2Zm16-3a4 4 0 0 1 0 8",
 };
 
 function Icon({ name, className = "h-4 w-4" }) {
@@ -51,6 +52,7 @@ const baseStages = [
   { id: "staging", title: "10. Staging", owner: "GitHub Environments", status: "queued", summary: "Deploy demo build to staging and collect evidence.", artifact: "Staging Evidence" },
   { id: "production", title: "11. Production", owner: "GitHub Actions", status: "queued", summary: "Deploy the approved demo dashboard.", artifact: "Deployment Record" },
   { id: "monitor", title: "12. Monitor", owner: "OpenClaw", status: "queued", summary: "Report final status back to Telegram and GitHub Issue.", artifact: "Telegram Status Report" },
+  { id: "launch-followup", title: "13. Public Follow-up", owner: "TweetClaw", status: "queued", summary: "Wait for approval, then search launch context, post the approved update, and monitor replies.", artifact: "Launch Signals" },
 ];
 
 const demoEvents = [
@@ -68,7 +70,9 @@ const demoEvents = [
   { time: "10:12", source: "Human", text: "Approved merge gate from Telegram.", updates: [{ id: "merge-gate", status: "done", summary: "Merge approved by Human Controller." }, { id: "staging", status: "running", summary: "Deploying the demo to staging." }] },
   { time: "10:13", source: "GitHub Environments", text: "Staging deployment completed and smoke evidence collected.", updates: [{ id: "staging", status: "done", summary: "Staging deployment passed smoke checks." }, { id: "production", status: "running", summary: "Production demo deployment started." }] },
   { time: "10:14", source: "GitHub Actions", text: "Production deployment completed successfully.", updates: [{ id: "production", status: "done", summary: "Production deployment completed." }, { id: "monitor", status: "running", summary: "OpenClaw is preparing the final report." }] },
-  { time: "10:15", source: "OpenClaw", text: "Final report sent to Telegram and GitHub Issue #128 moved to Done.", updates: [{ id: "monitor", status: "done", summary: "Final report sent. GitHub Issue #128 moved to Done." }] },
+  { time: "10:15", source: "OpenClaw", text: "Final report sent to Telegram and GitHub Issue #128 moved to Done.", updates: [{ id: "monitor", status: "done", summary: "Final report sent. GitHub Issue #128 moved to Done." }, { id: "launch-followup", status: "blocked", summary: "Waiting for approval before any public X/Twitter action." }] },
+  { time: "10:16", source: "Human", text: "Approved public release follow-up from Telegram.", updates: [{ id: "launch-followup", status: "running", summary: "TweetClaw is preparing the approved launch update and checking public context." }] },
+  { time: "10:17", source: "TweetClaw", text: "Searched tweets, posted the approved update, and started reply monitoring.", updates: [{ id: "launch-followup", status: "done", summary: "Approved post sent. Launch replies and quotes are now monitored." }] },
 ];
 
 const statusStyle = {
@@ -246,7 +250,7 @@ function App() {
               </div>
               <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">One-Shot Pipeline Demo</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                A simulated end-to-end run: Telegram prompt → OpenClaw planning → branch → implementation → CI failure → auto-fix → PR → staging → production → final report.
+                A simulated end-to-end run: Telegram prompt → OpenClaw planning → branch → implementation → CI failure → auto-fix → PR → staging → production → final report → TweetClaw follow-up.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
